@@ -10,10 +10,10 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/cweill/gotests/internal/goparser"
-	"github.com/cweill/gotests/internal/input"
-	"github.com/cweill/gotests/internal/models"
-	"github.com/cweill/gotests/internal/output"
+	"github.com/chrismoran-blockfi/gotests/internal/goparser"
+	"github.com/chrismoran-blockfi/gotests/internal/input"
+	"github.com/chrismoran-blockfi/gotests/internal/models"
+	"github.com/chrismoran-blockfi/gotests/internal/output"
 )
 
 // Options provides custom filters and parameters for generating tests.

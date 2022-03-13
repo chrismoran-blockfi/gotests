@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/cweill/gotests/internal/models"
+	"github.com/chrismoran-blockfi/gotests/internal/models"
 )
 
 // Files returns all the Golang files for the given path. Ignores hidden files. Conditionally ignores generated files.
