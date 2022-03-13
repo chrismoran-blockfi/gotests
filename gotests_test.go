@@ -21,6 +21,7 @@ func TestGenerateTests(t *testing.T) {
 		srcPath            string
 		only               *regexp.Regexp
 		excl               *regexp.Regexp
+		ignore             *regexp.Regexp
 		exported           bool
 		printInputs        bool
 		subtests           bool
@@ -105,6 +106,22 @@ func TestGenerateTests(t *testing.T) {
 			name: "No funcs",
 			args: args{
 				srcPath: `testdata/test000.go`,
+			},
+			wantNoTests: true,
+		},
+		{
+			name: "Ignore pattern (single)",
+			args: args{
+				ignore:  regexp.MustCompile(".*(_gen).go"),
+				srcPath: `testdata/test_patterns`,
+			},
+			wantNoTests: true,
+		},
+		{
+			name: "Ignore pattern (multiple)",
+			args: args{
+				ignore:  regexp.MustCompile(".*(_gen|_test).go"),
+				srcPath: `testdata/test_patterns`,
 			},
 			wantNoTests: true,
 		},
@@ -379,7 +396,6 @@ func TestGenerateTests(t *testing.T) {
 		{
 			name: "Receiver is indirect imported struct",
 			args: args{
-				// only:    regexp.MustCompile("^Foo037$"),
 				srcPath: `testdata/test037.go`,
 			},
 			want: mustReadAndFormatGoFile(t, "testdata/goldens/receiver_is_indirect_imported_struct.go"),
@@ -559,7 +575,7 @@ func TestGenerateTests(t *testing.T) {
 			},
 			want: mustReadAndFormatGoFile(t, "testdata/goldens/existing_test_file_with_multiple_imports.go"),
 		},
-		{
+		{ // WORNING: data race condition, if called with -race flag, because of structure in `internal/templates` package.
 			name: "Entire testdata directory",
 			args: args{
 				srcPath:  `testdata/`,
@@ -713,7 +729,7 @@ func TestGenerateTests(t *testing.T) {
 			},
 			want: mustReadAndFormatGoFile(t, "testdata/goldens/function_with_return_value_custom_template.go"),
 		},
-		{
+		{ // WORNING: panics on -race flag.
 			name: "Test interface embedding",
 			args: args{
 				srcPath: `testdata/undefinedtypes/interface_embedding.go`,
@@ -891,6 +907,7 @@ func TestGenerateTests(t *testing.T) {
 			gts, err := GenerateTests(tt.args.srcPath, &Options{
 				Only:           tt.args.only,
 				Exclude:        tt.args.excl,
+				Ignore:         tt.args.ignore,
 				Exported:       tt.args.exported,
 				PrintInputs:    tt.args.printInputs,
 				Subtests:       tt.args.subtests,

@@ -170,3 +170,15 @@ func (p Path) TestPath() string {
 func (p Path) IsTestPath() bool {
 	return strings.HasSuffix(string(p), "_test.go")
 }
+
+func (p Path) IsGenPath() bool {
+	return strings.HasSuffix(string(p), "_gen.go")
+}
+
+func (p Path) FilePart() string {
+	if strings.ContainsRune(string(p), '/') {
+		parts := strings.Split(string(p), "/")
+		return parts[len(parts)-1]
+	}
+	return string(p)
+}

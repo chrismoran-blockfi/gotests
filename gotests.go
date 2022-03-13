@@ -20,6 +20,7 @@ import (
 type Options struct {
 	Only           *regexp.Regexp         // Includes only functions that match.
 	Exclude        *regexp.Regexp         // Excludes functions that match.
+	Ignore         *regexp.Regexp         // Go source file patterns to ignore
 	Exported       bool                   // Include only exported methods
 	PrintInputs    bool                   // Print function parameters in error messages
 	Subtests       bool                   // Print tests using Go 1.7 subtests
@@ -46,13 +47,16 @@ func GenerateTests(srcPath string, opt *Options) ([]*GeneratedTest, error) {
 	if opt == nil {
 		opt = &Options{}
 	}
-	srcFiles, err := input.Files(srcPath)
+	srcFiles, err := input.Files(srcPath, opt.Ignore)
 	if err != nil {
 		return nil, fmt.Errorf("input.Files: %v", err)
 	}
-	files, err := input.Files(path.Dir(srcPath))
+	files, err := input.Files(path.Dir(srcPath), opt.Ignore)
 	if err != nil {
 		return nil, fmt.Errorf("input.Files: %v", err)
+	}
+	if files == nil {
+		return nil, nil
 	}
 	if opt.Importer == nil || opt.Importer() == nil {
 		opt.Importer = importer.Default
@@ -120,7 +124,7 @@ func generateTest(src models.Path, files []models.Path, opt *Options) (*Generate
 		return nil, nil
 	}
 
-	b, err := output.Process(h, funcs, &output.Options{
+	options := output.Options{
 		PrintInputs:    opt.PrintInputs,
 		Subtests:       opt.Subtests,
 		Parallel:       opt.Parallel,
@@ -129,7 +133,9 @@ func generateTest(src models.Path, files []models.Path, opt *Options) (*Generate
 		TemplateDir:    opt.TemplateDir,
 		TemplateParams: opt.TemplateParams,
 		TemplateData:   opt.TemplateData,
-	})
+	}
+
+	b, err := options.Process(h, funcs)
 	if err != nil {
 		return nil, fmt.Errorf("output.Process: %v", err)
 	}

@@ -25,6 +25,7 @@ const (
 type Options struct {
 	OnlyFuncs          string   // Regexp string for filter matches.
 	ExclFuncs          string   // Regexp string for excluding matches.
+	Ignore             string   // Regexp string for ignoring go sources.
 	ExportedFuncs      bool     // Only include exported functions.
 	AllFuncs           bool     // Include all non-tested functions.
 	PrintInputs        bool     // Print function parameters as part of error messages.
@@ -74,6 +75,12 @@ func parseOptions(out io.Writer, opt *Options) *gotests.Options {
 		return nil
 	}
 
+	ignoreRE, err := parseRegexp(opt.Ignore)
+	if err != nil {
+		fmt.Fprintln(out, "Invalid -ignore regex:", err)
+		return nil
+	}
+
 	templateParams := map[string]interface{}{}
 	jfile := opt.TemplateParamsPath
 	if jfile != "" {
@@ -93,6 +100,7 @@ func parseOptions(out io.Writer, opt *Options) *gotests.Options {
 	return &gotests.Options{
 		Only:           onlyRE,
 		Exclude:        exclRE,
+		Ignore:         ignoreRE,
 		Exported:       opt.ExportedFuncs,
 		PrintInputs:    opt.PrintInputs,
 		Subtests:       opt.Subtests,
