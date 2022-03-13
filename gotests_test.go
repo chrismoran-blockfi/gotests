@@ -21,6 +21,7 @@ func TestGenerateTests(t *testing.T) {
 		srcPath            string
 		only               *regexp.Regexp
 		excl               *regexp.Regexp
+		ignore             *regexp.Regexp
 		exported           bool
 		printInputs        bool
 		subtests           bool
@@ -105,6 +106,22 @@ func TestGenerateTests(t *testing.T) {
 			name: "No funcs",
 			args: args{
 				srcPath: `testdata/test000.go`,
+			},
+			wantNoTests: true,
+		},
+		{
+			name: "Ignore pattern (single)",
+			args: args{
+				ignore:  regexp.MustCompile(".*(_gen).go"),
+				srcPath: `testdata/test_patterns`,
+			},
+			wantNoTests: true,
+		},
+		{
+			name: "Ignore pattern (multiple)",
+			args: args{
+				ignore:  regexp.MustCompile(".*(_gen|_test).go"),
+				srcPath: `testdata/test_patterns`,
 			},
 			wantNoTests: true,
 		},
@@ -890,6 +907,7 @@ func TestGenerateTests(t *testing.T) {
 			gts, err := GenerateTests(tt.args.srcPath, &Options{
 				Only:           tt.args.only,
 				Exclude:        tt.args.excl,
+				Ignore:         tt.args.ignore,
 				Exported:       tt.args.exported,
 				PrintInputs:    tt.args.printInputs,
 				Subtests:       tt.args.subtests,
