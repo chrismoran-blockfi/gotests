@@ -18,18 +18,19 @@ import (
 
 // Options provides custom filters and parameters for generating tests.
 type Options struct {
-	Only           *regexp.Regexp         // Includes only functions that match.
-	Exclude        *regexp.Regexp         // Excludes functions that match.
-	Exported       bool                   // Include only exported methods
-	PrintInputs    bool                   // Print function parameters in error messages
-	Subtests       bool                   // Print tests using Go 1.7 subtests
-	Parallel       bool                   // Print tests that runs the subtests in parallel.
-	Named          bool                   // Create Map instead of slice
-	Importer       func() types.Importer  // A custom importer.
-	Template       string                 // Name of custom template set
-	TemplateDir    string                 // Path to custom template set
-	TemplateParams map[string]interface{} // Custom external parameters
-	TemplateData   [][]byte               // Data slice for templates
+	Only            *regexp.Regexp         // Includes only functions that match.
+	Exclude         *regexp.Regexp         // Excludes functions that match.
+	Exported        bool                   // Include only exported methods
+	PrintInputs     bool                   // Print function parameters in error messages
+	Subtests        bool                   // Print tests using Go 1.7 subtests
+	Parallel        bool                   // Print tests that runs the subtests in parallel.
+	Named           bool                   // Create Map instead of slice
+	IgnoreGenerated bool                   // Ignore go files matching `*_gen.go`
+	Importer        func() types.Importer  // A custom importer.
+	Template        string                 // Name of custom template set
+	TemplateDir     string                 // Path to custom template set
+	TemplateParams  map[string]interface{} // Custom external parameters
+	TemplateData    [][]byte               // Data slice for templates
 }
 
 // A GeneratedTest contains information about a test file with generated tests.
@@ -46,11 +47,11 @@ func GenerateTests(srcPath string, opt *Options) ([]*GeneratedTest, error) {
 	if opt == nil {
 		opt = &Options{}
 	}
-	srcFiles, err := input.Files(srcPath)
+	srcFiles, err := input.Files(srcPath, opt.IgnoreGenerated)
 	if err != nil {
 		return nil, fmt.Errorf("input.Files: %v", err)
 	}
-	files, err := input.Files(path.Dir(srcPath))
+	files, err := input.Files(path.Dir(srcPath), opt.IgnoreGenerated)
 	if err != nil {
 		return nil, fmt.Errorf("input.Files: %v", err)
 	}

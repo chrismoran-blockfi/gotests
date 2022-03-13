@@ -170,3 +170,7 @@ func (p Path) TestPath() string {
 func (p Path) IsTestPath() bool {
 	return strings.HasSuffix(string(p), "_test.go")
 }
+
+func (p Path) IsGenPath() bool {
+	return strings.HasSuffix(string(p), "_gen.go")
+}
