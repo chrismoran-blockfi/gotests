@@ -25,13 +25,13 @@ const (
 type Options struct {
 	OnlyFuncs          string   // Regexp string for filter matches.
 	ExclFuncs          string   // Regexp string for excluding matches.
+	Ignore             string   // Regexp string for ignoring go sources.
 	ExportedFuncs      bool     // Only include exported functions.
 	AllFuncs           bool     // Include all non-tested functions.
 	PrintInputs        bool     // Print function parameters as part of error messages.
 	Subtests           bool     // Print tests using Go 1.7 subtests
 	Parallel           bool     // Print tests that runs the subtests in parallel.
 	Named              bool     // Create Map instead of slice
-	IgnoreGenerated    bool     // Ignore go files matching `*_gen.go`
 	WriteOutput        bool     // Write output to test file(s).
 	Template           string   // Name of custom template set
 	TemplateDir        string   // Path to custom template set
@@ -75,6 +75,12 @@ func parseOptions(out io.Writer, opt *Options) *gotests.Options {
 		return nil
 	}
 
+	ignoreRE, err := parseRegexp(opt.Ignore)
+	if err != nil {
+		fmt.Fprintln(out, "Invalid -ignore regex:", err)
+		return nil
+	}
+
 	templateParams := map[string]interface{}{}
 	jfile := opt.TemplateParamsPath
 	if jfile != "" {
@@ -92,18 +98,18 @@ func parseOptions(out io.Writer, opt *Options) *gotests.Options {
 	}
 
 	return &gotests.Options{
-		Only:            onlyRE,
-		Exclude:         exclRE,
-		Exported:        opt.ExportedFuncs,
-		PrintInputs:     opt.PrintInputs,
-		Subtests:        opt.Subtests,
-		Parallel:        opt.Parallel,
-		Named:           opt.Named,
-		IgnoreGenerated: opt.IgnoreGenerated,
-		Template:        opt.Template,
-		TemplateDir:     opt.TemplateDir,
-		TemplateParams:  templateParams,
-		TemplateData:    opt.TemplateData,
+		Only:           onlyRE,
+		Exclude:        exclRE,
+		Ignore:         ignoreRE,
+		Exported:       opt.ExportedFuncs,
+		PrintInputs:    opt.PrintInputs,
+		Subtests:       opt.Subtests,
+		Parallel:       opt.Parallel,
+		Named:          opt.Named,
+		Template:       opt.Template,
+		TemplateDir:    opt.TemplateDir,
+		TemplateParams: templateParams,
+		TemplateData:   opt.TemplateData,
 	}
 }
 
@@ -141,7 +147,7 @@ func outputTest(out io.Writer, t *gotests.GeneratedTest, writeOutput bool) {
 		}
 	}
 	for _, t := range t.Functions {
-		fmt.Fprintln(out, "IgnoreGenerated", t.TestName())
+		fmt.Fprintln(out, "Generated", t.TestName())
 	}
 	if !writeOutput {
 		out.Write(t.Output)
